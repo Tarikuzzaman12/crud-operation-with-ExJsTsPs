@@ -53,14 +53,25 @@ initDB()
 app.get('/', (_req:Request, res:Response) => {
   res.send('Hello Next level web-Development!')
 })
-app.post('/', (_req:Request, res:Response) => {
-    console.log(_req.body)
-  res.status(201).json({
-    success:true,
-    message:"api is working"
-  }
+app.post('/users', async (_req:Request, res:Response) => {
+ const {name,email}=_req.body
+ try{
+  const result = await pool.query(`INSERT INTO users(name,email) VALUES($1, $2) RETURNING *`,[name,email])
+  // console.log(result.rows[0])
+   res.status(201).json({
+    success:false,
+    message:"Data Insarted Successfully",
+    data:result.rows[0]
+     })
 
-  )
+ }catch(err:any){
+  res.status(500).json({
+    success:false,
+    message:err.message
+
+  })
+ }
+
 })
 
 
