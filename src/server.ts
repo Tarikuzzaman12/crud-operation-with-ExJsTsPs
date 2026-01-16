@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express"
+import express, { NextFunction, Request, Response } from "express"
 import {Pool} from "pg"
 import dotenv from "dotenv"
 import path from "path"
@@ -51,7 +51,13 @@ const initDB=async() =>{
 }
 initDB()
 
-app.get('/', (_req:Request, res:Response) => {
+// logger middleware
+const logger= (_req:Request,res:Response,next:NextFunction) =>{
+  console.log(`[${new Date().toISOString()} ${_req.method} ${_req.path}\n`)
+  next()
+}
+
+app.get('/',logger, (_req:Request, res:Response) => {
   res.send('Hello Next level web-Development!')
 })
 
@@ -181,6 +187,58 @@ app.delete("/users/:id",async(_req:Request, res:Response)=>{
 
 })
 
+// TOODO CRUD
+// post todos
+app.post("/todos", async (_req:Request, res:Response) =>{
+  const {user_id,title}=_req.body
+try{
+    const result = await pool.query(`INSERT INTO todos(user_id,title) VALUES($1,$2) RETURNING *`,[user_id,title])
+    res.status(201).json({
+      success:true,
+      message:"ToDos are creaed",
+      data:result.rows[0]
+
+    })
+
+  }catch(err){
+    res.status(500).json({
+      success:false,
+      message:"file are not created"
+    })
+  }
+
+})
+
+// get todos
+app.get("/todos",async (_req:Request, res:Response) =>{
+  try{
+    const result = await pool.query(`SELECT * FROM todos`)
+    res.status(201).json({
+      success:true,
+      message:"todos retrived successfully",
+      data:result.rows
+
+
+    })
+  }catch(err:any){
+    res.status(500).json({
+      succes:false,
+      message:err.message,
+      details:err
+    })
+
+  }
+})
+
+// Not Found Route
+app.use((_req,res) =>{
+  res.status(404).json({
+    success:false,
+    message:"Route Not Found",
+    path:_req.path
+  })
+
+})
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 })
