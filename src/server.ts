@@ -20,7 +20,6 @@ const pool =new Pool({
 })
 
 // Table create 
-
 const initDB=async() =>{
   await pool.query(
     `CREATE TABLE IF NOT EXISTS users(
@@ -57,7 +56,6 @@ app.get('/', (_req:Request, res:Response) => {
 })
 
 // post user to the Database
-
 app.post('/users', async (_req:Request, res:Response) => {
  const {name,email}=_req.body
  try{
@@ -125,7 +123,63 @@ app.get("/users/:id",async(_req:Request, res:Response)=>{
     })
   }
 
-} )
+})
+
+// update user with put method
+app.put("/users/:id",async(_req:Request, res:Response)=>{
+  // console.log(_req.params.id)
+  const {name,email}= _req.body
+  try{
+    const result = await pool.query(`UPDATE users SET name=$1, email=$2 WHERE id=$3
+ RETURNING *`,[name,email,_req.params.id])
+    if(result.rows.length == 0){
+      res.status(404).json({
+            success:false,
+            message:"Users not found",
+      
+      })
+    }else{
+      res.status(200).json({
+           success:true,
+            message:"Users update successfuly",
+            data:result.rows[0]
+      })
+    }
+  }catch(err:any){
+    res.status(500).json({
+      status:false,
+      message:err.message
+    })
+  }
+
+})
+
+// delete user 
+app.delete("/users/:id",async(_req:Request, res:Response)=>{
+  // console.log(_req.params.id)
+  try{
+    const result = await pool.query(`DELETE FROM users WHERE id=$1`,[_req.params.id])
+    if(result.rowCount == 0){
+      res.status(404).json({
+            success:false,
+            message:"Users not found",
+      
+      })
+    }else{
+      res.status(201).json({
+           success:true,
+            message:"Users deleted successfully",
+            data:null
+      })
+    }
+  }catch(err:any){
+    res.status(500).json({
+      status:false,
+      message:err.message
+    })
+  }
+
+})
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
