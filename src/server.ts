@@ -109,7 +109,7 @@ app.get("/users/:id",async(_req:Request, res:Response)=>{
   // console.log(_req.params.id)
   try{
     const result = await pool.query(`SELECT * FROM users WHERE id=$1`,[_req.params.id])
-    if(result.rows.length ==0){
+    if(result.rows.length == 0){
       res.status(404).json({
             success:false,
             message:"Users not found",
@@ -191,6 +191,7 @@ app.delete("/users/:id",async(_req:Request, res:Response)=>{
 // post todos
 app.post("/todos", async (_req:Request, res:Response) =>{
   const {user_id,title}=_req.body
+
 try{
     const result = await pool.query(`INSERT INTO todos(user_id,title) VALUES($1,$2) RETURNING *`,[user_id,title])
     res.status(201).json({
@@ -228,6 +229,33 @@ app.get("/todos",async (_req:Request, res:Response) =>{
     })
 
   }
+})
+// update todos
+app.put("/todos/:id",async (_req:Request,res:Response) =>{
+  const {title}=_req.body
+   try{
+    const result = await pool.query(`UPDATE todos SET title=$1  WHERE id=$2
+ RETURNING *`,[title,_req.params.id])
+    if(result.rows.length == 0){
+      res.status(404).json({
+            success:false,
+            message:"todos not found not found",
+      
+      })
+    }else{
+      res.status(200).json({
+           success:true,
+            message:"todos update successfuly",
+            data:result.rows[0]
+      })
+    }
+  }catch(err:any){
+    res.status(500).json({
+      status:false,
+      message:err.message
+    })
+  }
+
 })
 
 // Not Found Route
