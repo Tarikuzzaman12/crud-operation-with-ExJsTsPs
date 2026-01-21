@@ -6,7 +6,8 @@ import config from "."
 
 // DB
  export const pool =new Pool({
-    connectionString:`${config.connection_str}`
+    connectionString:`${config.connection_str}`,
+    ssl:{rejectUnauthorized:false}
 })
 
 // Table create 
@@ -15,7 +16,9 @@ const initDB=async() =>{
     `CREATE TABLE IF NOT EXISTS users(
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
+    role VARCHAR(60) NOT NULL,
     email VARCHAR(150) UNIQUE NOT NULL,
+    password TEXT NOT NULL,
     age INT,
     phone VARCHAR(15),
     adress TEXT,
